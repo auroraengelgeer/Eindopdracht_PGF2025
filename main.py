@@ -8,22 +8,22 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL")
 
-def toon_menu():
-    print("\n\U0001F37D\U0000FE0F WAT ETEN WE VANDAAG?")
-    print("1. Zoek recepten op ingrediënten")
-    print("2. Krijg een random recept")
-    print("3. Bekijk voedingsinformatie (via ID)")
-    print("4. Vraag recept URL op (via ID)")
-    print("5. Afsluiten")
+def show_menu():
+    print("\n\U0001F37D\U0000FE0F What's On The Menu Today?")
+    print("1. Find recipes based on ingredients you have in your fridge")
+    print("2. Need inspiration? Get a random recipe")
+    print("3. Find out about nutritional values (with recipe-ID)")
+    print("4. Get the link to your favourite recipe (with recipe-ID)")
+    print("5. Close")
 
-def zoek_recepten_op_ingredienten():
+def recipes_from_ingredients():
     try:
-        print("\n\U0001F50D Voer ingrediënten in (in het Engels, gescheiden door komma's)")
-        print("Voorbeeld: chicken,potato,carrot of pasta,tomato,cheese")
+        print("\n\U0001F50D What ingredients do you have? (divide them with commas)")
+        print("Example: chicken,potato,carrot or pasta,tomato,cheese")
         ingrediënten_input = input("> ").strip()
 
         if not ingrediënten_input:
-            print("\U0000274C Je moet minstens 1 ingrediënt invoeren")
+            print("\U0000274C You have to write down at least 1 ingredient.")
             return
 
         ingrediënten = [i.strip() for i in ingrediënten_input.split(",") if i.strip()]
@@ -42,19 +42,19 @@ def zoek_recepten_op_ingredienten():
         recepten = response.json()
 
         if not recepten:
-            print(f"\n\U0000274C Geen recepten gevonden met: {', '.join(ingrediënten)}")
+            print(f"\n\U0000274C No recipes found with: {', '.join(ingrediënten)}")
             return
 
-        print(f"\n\U0001F374 {len(recepten)} recepten gevonden met: {', '.join(ingrediënten)}")
+        print(f"\n\U0001F374 {len(recepten)} recipes found with: {', '.join(ingrediënten)}")
         for idx, recept in enumerate(recepten, 1):
             print(f"\n\U0001F539 [ID: {recept['id']}] {recept['title']}")
-            print(f"   \U00002705 Gebruikt {len(recept.get('usedIngredients', []))} ingrediënten")
-            print(f"   \U0000274C Mist {len(recept.get('missedIngredients', []))} ingrediënten")
+            print(f"   \U00002705 Uses: {len(recept.get('usedIngredients', []))} ingredient(s)")
+            print(f"   \U0000274C Missing: {len(recept.get('missedIngredients', []))} ingredient(s)")
 
     except Exception as e:
-        print(f"\n\U0000274C Fout: {str(e)}")
+        print(f"\n\U0000274C Error: {str(e)}")
 
-def krijg_random_recept():
+def get_random_recipe():
     try:
         url = f"{BASE_URL}/recipes/random"
         params = {"apiKey": API_KEY, "number": 1}
@@ -63,21 +63,21 @@ def krijg_random_recept():
         response.raise_for_status()
         recept = response.json()['recipes'][0]
 
-        print("\n\U0001F3B2 Willekeurig recept:")
+        print("\n\U0001F3B2 Random recipe:")
         print(f"\n\U0001F539 [ID: {recept['id']}] {recept['title']}")
-        print(f"\U000023F1\U0000FE0F {recept.get('readyInMinutes', '?')} minuten | \U0001F37D\U0000FE0F {recept.get('servings', '?')} porties")
+        print(f"\U000023F1\U0000FE0F {recept.get('readyInMinutes')} minutes | \U0001F37D\U0000FE0F {recept.get('servings')} servings")
 
         if 'sourceUrl' in recept:
-            print(f"\n\U0001F517 Volledig recept: {recept['sourceUrl']}")
+            print(f"\n\U0001F517 Full recipe: {recept['sourceUrl']}")
 
     except Exception as e:
-        print(f"\n\U0000274C Fout: {str(e)}")
+        print(f"\n\U0000274C Error: {str(e)}")
 
-def toon_voedingsinfo():
+def show_nutrional_value():
     try:
-        recept_id = input("\nVoer recept-ID in (zie bij optie 1/2): ").strip()
+        recept_id = input("\nEnter recipe-ID (see option 1/2): ").strip()
         if not recept_id.isdigit():
-            print("\U0000274C Voer een geldig ID in (cijfers)")
+            print("\U0000274C Enter a valid ID in numbers")
             return
 
         url = f"{BASE_URL}/recipes/{recept_id}/nutritionWidget.json"
@@ -87,20 +87,20 @@ def toon_voedingsinfo():
         response.raise_for_status()
         voeding = response.json()
 
-        print("\n\U0001F4CA Voedingswaarden per portie:")
-        print(f"\U0001F525 Calorieën: {voeding.get('calories', '?')}")
-        print(f"\U0001F95A Eiwit: {voeding.get('protein', '?')}g")
-        print(f"\U0001F9C2 Vet: {voeding.get('fat', '?')}g")
-        print(f"\U0001F33E Koolhydraten: {voeding.get('carbs', '?')}g")
+        print("\n\U0001F4CA Nutrional value per serving:")
+        print(f"\U0001F525 Calories: {voeding.get('calories')} kcal")
+        print(f"\U0001F95A Protein: {voeding.get('protein')}")
+        print(f"\U0001F9C2 Fat: {voeding.get('fat')}")
+        print(f"\U0001F33E Carbohydrates: {voeding.get('carbs')}")
 
     except Exception as e:
-        print(f"\n\U0000274C Fout: {str(e)}")
+        print(f"\n\U0000274C Error: {str(e)}")
 
-def vraag_recept_url_op():
+def get_recipe_url():
     try:
-        recept_id = input("\nVoer recept-ID in om de URL op te vragen: ").strip()
+        recept_id = input("\nEnter recipe-ID to get the recipe-URL: ").strip()
         if not recept_id.isdigit():
-            print("\U0000274C Voer een geldig ID in (cijfers)")
+            print("\U0000274C Enter a valid ID in numbers")
             return
 
         url = f"{BASE_URL}/recipes/{recept_id}/information"
@@ -111,35 +111,35 @@ def vraag_recept_url_op():
         recept_info = response.json()
 
         if 'sourceUrl' in recept_info and recept_info['sourceUrl']:
-            print(f"\n\U0001F517 Recept URL voor ID {recept_id}:")
+            print(f"\n\U0001F517 Recipe URL for ID {recept_id}:")
             print(recept_info['sourceUrl'])
         else:
-            print(f"\n\U0000274C Geen URL gevonden voor recept met ID {recept_id}")
+            print(f"\n\U0000274C No URL found for this recipe-ID {recept_id}")
 
     except Exception as e:
-        print(f"\n\U0000274C Fout: {str(e)}")
+        print(f"\n\U0000274C Error: {str(e)}")
 
-# Hoofdprogramma
+# Main
 if __name__ == "__main__":
-    print("\U00002728 WELKOM BIJ DE RECEPTEN APP \U00002728")
-    print("Je kunt bij elk recept het ID vinden voor voedingsinfo en URL's")
+    print("\U00002728 Welcome in the Recipe Finder! \U00002728")
+    print("Every recipe includes a ID that can be used to request nutritional value and the recipe-URL")
 
     while True:
-        toon_menu()
-        keuze = input("\nMaak je keuze (1-5): ").strip()
+        show_menu()
+        choice = input("\nChoose your option (1-5): ").strip()
 
-        if keuze == "1":
-            zoek_recepten_op_ingredienten()
-        elif keuze == "2":
-            krijg_random_recept()
-        elif keuze == "3":
-            toon_voedingsinfo()
-        elif keuze == "4":
-            vraag_recept_url_op()
-        elif keuze == "5":
-            print("\n\U0001F44B Bedankt en eet smakelijk!")
+        if choice == "1":
+            recipes_from_ingredients()
+        elif choice == "2":
+            get_random_recipe()
+        elif choice == "3":
+            show_nutrional_value()
+        elif choice == "4":
+            get_recipe_url()
+        elif choice == "5":
+            print("\n\U0001F44B Thank you and enjoy your meal!")
             break
         else:
-            print("\U0000274C Ongeldige keuze")
+            print("\U0000274C Invalid choice")
 
-        input("\nDruk op Enter om verder te gaan...")
+        input("\nPress Enter to continue...")
