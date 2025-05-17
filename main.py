@@ -9,7 +9,7 @@ API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL")
 
 def show_menu():
-    print("\n\U0001F37D\U0000FE0F What's On The Menu Today?")
+    print("\n\U0001F37D\U0000FE0F What's On Today's Menu?")
     print("1. Find recipes based on ingredients you have in your fridge")
     print("2. Need inspiration? Get a random recipe")
     print("3. Find out about nutritional values (with recipe-ID)")
@@ -20,18 +20,18 @@ def recipes_from_ingredients():
     try:
         print("\n\U0001F50D What ingredients do you have? (divide them with commas)")
         print("Example: chicken,potato,carrot or pasta,tomato,cheese")
-        ingrediënten_input = input("> ").strip()
+        ingredient_input = input("> ").strip()
 
-        if not ingrediënten_input:
+        if not ingredient_input:
             print("\U0000274C You have to write down at least 1 ingredient.")
             return
 
-        ingrediënten = [i.strip() for i in ingrediënten_input.split(",") if i.strip()]
+        ingredient = [i.strip() for i in ingredient_input.split(",") if i.strip()]
 
         url = f"{BASE_URL}/recipes/findByIngredients"
         params = {
             "apiKey": API_KEY,
-            "ingredients": ",".join(ingrediënten),
+            "ingredients": ",".join(ingredient),
             "number": 5,
             "ignorePantry": True,
             "ranking": 2
@@ -42,10 +42,10 @@ def recipes_from_ingredients():
         recepten = response.json()
 
         if not recepten:
-            print(f"\n\U0000274C No recipes found with: {', '.join(ingrediënten)}")
+            print(f"\n\U0000274C No recipes found with: {', '.join(ingredient)}")
             return
 
-        print(f"\n\U0001F374 {len(recepten)} recipes found with: {', '.join(ingrediënten)}")
+        print(f"\n\U0001F374 {len(recepten)} recipes found with: {', '.join(ingredient)}")
         for idx, recept in enumerate(recepten, 1):
             print(f"\n\U0001F539 [ID: {recept['id']}] {recept['title']}")
             print(f"   \U00002705 Uses: {len(recept.get('usedIngredients', []))} ingredient(s)")
@@ -73,7 +73,7 @@ def get_random_recipe():
     except Exception as e:
         print(f"\n\U0000274C Error: {str(e)}")
 
-def show_nutrional_value():
+def show_nutritional_value():
     try:
         recept_id = input("\nEnter recipe-ID (see option 1/2): ").strip()
         if not recept_id.isdigit():
@@ -87,7 +87,7 @@ def show_nutrional_value():
         response.raise_for_status()
         voeding = response.json()
 
-        print("\n\U0001F4CA Nutrional value per serving:")
+        print("\n\U0001F4CA Nutritional value per serving:")
         print(f"\U0001F525 Calories: {voeding.get('calories')} kcal")
         print(f"\U0001F95A Protein: {voeding.get('protein')}")
         print(f"\U0001F9C2 Fat: {voeding.get('fat')}")
@@ -133,7 +133,7 @@ if __name__ == "__main__":
         elif choice == "2":
             get_random_recipe()
         elif choice == "3":
-            show_nutrional_value()
+            show_nutritional_value()
         elif choice == "4":
             get_recipe_url()
         elif choice == "5":
