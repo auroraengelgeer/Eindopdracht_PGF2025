@@ -8,11 +8,11 @@ BASE_URL = os.getenv("BASE_URL")
 
 
 def show_menu():
-    print("\U0001f37d\ufe0f What's on the menu today?")
-    print("1. Find recipes with ingredients I have in my fridge")
+    print("\U0001f37d\ufe0f What's on your menu today?")
+    print("1. Find recipes with ingredients you have in the fridge")
     print("2. Need inspiration? Get a random recipe")
-    print("3. Check nutritional value (need recipe ID)")
-    print("4. Get the recipe URL (need recipe ID)")
+    print("3. Check the nutritional value of a recipe (with recipe ID)")
+    print("4. Get the recipe URL (with recipe ID)")
     print("5. Exit (I'm full!)")
 
 
@@ -36,7 +36,7 @@ def find_recipes_by_ingredients():
                 "ingredients": ",".join(ingredients_list),
                 "number": 5,
                 "ignorePantry": True,
-                "ranking": 2
+                "ranking": 2 # Using ranking=2 to prioritize recipes with most matched ingredients
             }
 
             response = requests.get(url, params=params)
@@ -90,7 +90,7 @@ def get_random_recipe():
 def show_nutritional_info():
     while True:
         try:
-            print("\n\U0001f4ca Let's check the nutritional value!")
+            print("\n\U0001f4ca Let's check the nutritional value of your recipe!")
             recipe_id = input("Enter the recipe ID (from option 1 or 2): ").strip()
 
             if not recipe_id.isdigit():
@@ -114,7 +114,7 @@ def show_nutritional_info():
             break
 
         except Exception as error:
-            print(f"\n\u26a0\ufe0f Nutrition info error: {error}")
+            print(f"\n\u26a0\ufe0f {error}")
             print("Please try again with a different ID")
 
 
@@ -125,7 +125,7 @@ def get_recipe_link():
             recipe_id = input("Enter recipe ID: ").strip()
 
             if not recipe_id.isdigit():
-                print("\U0001f635 ID should be numbers only!")
+                print("\U0001f635 The ID should be numbers only!")
                 continue
 
             url = f"{BASE_URL}/recipes/{recipe_id}/information"
@@ -139,7 +139,7 @@ def get_recipe_link():
             if 'sourceUrl' in recipe_info and recipe_info['sourceUrl']:
                 print(f"\n\U0001f310 Here's the recipe: {recipe_info['sourceUrl']}")
             else:
-                print("\n\U0001f622 Sorry, couldn't find a link for this recipe")
+                print("\n\U0001f622 Sorry, we could not find a link for this recipe")
                 print("Please try a different recipe ID")
                 continue
 
