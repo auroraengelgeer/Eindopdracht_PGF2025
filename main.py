@@ -3,143 +3,171 @@ from dotenv import load_dotenv
 import os
 load_dotenv()
 
-
-
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL")
 
+
 def show_menu():
-    print("\n\U0001F37D\U0000FE0F What's On Today's Menu?")
-    print("1. Find recipes based on ingredients you have in your fridge")
+    print("\U0001f37d\ufe0f What's on the menu today?")
+    print("1. Find recipes with ingredients I have in my fridge")
     print("2. Need inspiration? Get a random recipe")
-    print("3. Find out about nutritional values (with recipe-ID)")
-    print("4. Get the link to your favourite recipe (with recipe-ID)")
-    print("5. Close")
+    print("3. Check nutritional value (need recipe ID)")
+    print("4. Get the recipe URL (need recipe ID)")
+    print("5. Exit (I'm full!)")
 
-def recipes_from_ingredients():
-    try:
-        print("\n\U0001F50D What ingredients do you have? (divide them with commas)")
-        print("Example: chicken,potato,carrot or pasta,tomato,cheese")
-        ingredient_input = input("> ").strip()
 
-        if not ingredient_input:
-            print("\U0000274C You have to write down at least 1 ingredient.")
-            return
+def find_recipes_by_ingredients():
+    while True:
+        try:
+            print("\U0001f50dWhat's in your fridge? (separate with commas)")
+            print("Like: eggs,milk,flour or chicken,rice,broccoli")
+            ingredients = input("> ").strip()
 
-        ingredient = [i.strip() for i in ingredient_input.split(",") if i.strip()]
+            if not ingredients:
+                print("\U0001f635 Oops! You need to enter at least one ingredient")
+                continue
 
-        url = f"{BASE_URL}/recipes/findByIngredients"
-        params = {
-            "apiKey": API_KEY,
-            "ingredients": ",".join(ingredient),
-            "number": 5,
-            "ignorePantry": True,
-            "ranking": 2
-        }
+            ingredients_list = [i.strip() for i in ingredients.split(",")]
+            ingredients_list = [i for i in ingredients_list if i]
 
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        recepten = response.json()
+            url = f"{BASE_URL}/recipes/findByIngredients"
+            params = {
+                "apiKey": API_KEY,
+                "ingredients": ",".join(ingredients_list),
+                "number": 5,
+                "ignorePantry": True,
+                "ranking": 2
+            }
 
-        if not recepten:
-            print(f"\n\U0000274C No recipes found with: {', '.join(ingredient)}")
-            return
+            response = requests.get(url, params=params)
+            response.raise_for_status()
 
-        print(f"\n\U0001F374 {len(recepten)} recipes found with: {', '.join(ingredient)}")
-        for idx, recept in enumerate(recepten, 1):
-            print(f"\n\U0001F539 [ID: {recept['id']}] {recept['title']}")
-            print(f"   \U00002705 Uses: {len(recept.get('usedIngredients', []))} ingredient(s)")
-            print(f"   \U0000274C Missing: {len(recept.get('missedIngredients', []))} ingredient(s)")
+            recipes = response.json()
 
-    except Exception as e:
-        print(f"\n\U0000274C Error: {str(e)}")
+            if not recipes:
+                print(f"\n\U0001f625No recipes found with: {', '.join(ingredients_list)}")
+                print("Please try different ingredients")
+                continue
+
+            print(f"\n\U0001f374 Found {len(recipes)} recipes with your ingredients:")
+            for recipe in recipes:
+                print(f"\n\U0001f194 [ID: {recipe['id']}] {recipe['title']}")
+                print(f"   \u2705 Uses: {len(recipe.get('usedIngredients', []))} ingredients")
+                print(f"   \u274e Missing: {len(recipe.get('missedIngredients', []))} ingredients")
+
+            break
+
+        except Exception as error:
+            print(f"\n\u26a0\ufe0f Whoops! Something went wrong: {error}")
+            print("Let's try that again...")
+
 
 def get_random_recipe():
     try:
+        print("\n\U0001f3b2 Let's get a random recipe!")
+
         url = f"{BASE_URL}/recipes/random"
         params = {"apiKey": API_KEY, "number": 1}
 
         response = requests.get(url, params=params)
         response.raise_for_status()
-        recept = response.json()['recipes'][0]
 
-        print("\n\U0001F3B2 Random recipe:")
-        print(f"\n\U0001F539 [ID: {recept['id']}] {recept['title']}")
-        print(f"\U000023F1\U0000FE0F {recept.get('readyInMinutes')} minutes | \U0001F37D\U0000FE0F {recept.get('servings')} servings")
+        recipe = response.json()['recipes'][0]
 
-        if 'sourceUrl' in recept:
-            print(f"\n\U0001F517 Full recipe: {recept['sourceUrl']}")
+        print(f"\n\U0001f194 [ID: {recipe['id']}] {recipe['title']}")
+        print(f"\u23f0 {recipe.get('readyInMinutes', '?')} minutes")
+        print(f"\U0001f37d\ufe0f Serves {recipe.get('servings', '?')}")
 
-    except Exception as e:
-        print(f"\n\U0000274C Error: {str(e)}")
-
-def show_nutritional_value():
-    try:
-        recept_id = input("\nEnter recipe-ID (see option 1/2): ").strip()
-        if not recept_id.isdigit():
-            print("\U0000274C Enter a valid ID in numbers")
-            return
-
-        url = f"{BASE_URL}/recipes/{recept_id}/nutritionWidget.json"
-        params = {"apiKey": API_KEY}
-
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        voeding = response.json()
-
-        print("\n\U0001F4CA Nutritional value per serving:")
-        print(f"\U0001F525 Calories: {voeding.get('calories')} kcal")
-        print(f"\U0001F95A Protein: {voeding.get('protein')}")
-        print(f"\U0001F9C2 Fat: {voeding.get('fat')}")
-        print(f"\U0001F33E Carbohydrates: {voeding.get('carbs')}")
-
-    except Exception as e:
-        print(f"\n\U0000274C Error: {str(e)}")
-
-def get_recipe_url():
-    try:
-        recept_id = input("\nEnter recipe-ID to get the recipe-URL: ").strip()
-        if not recept_id.isdigit():
-            print("\U0000274C Enter a valid ID in numbers")
-            return
-
-        url = f"{BASE_URL}/recipes/{recept_id}/information"
-        params = {"apiKey": API_KEY}
-
-        response = requests.get(url, params=params)
-        response.raise_for_status()
-        recept_info = response.json()
-
-        if 'sourceUrl' in recept_info and recept_info['sourceUrl']:
-            print(f"\n\U0001F517 Recipe URL for ID {recept_id}:")
-            print(recept_info['sourceUrl'])
+        if 'sourceUrl' in recipe:
+            print(f"\n\U0001f517 Full recipe here: {recipe['sourceUrl']}")
         else:
-            print(f"\n\U0000274C No URL found for this recipe-ID {recept_id}")
+            print("\n(No link available for this recipe)")
 
-    except Exception as e:
-        print(f"\n\U0000274C Error: {str(e)}")
+    except Exception as error:
+        print(f"\n\u26a0\ufe0f Oops! Error getting random recipe: {error}")
 
-# Main
+
+def show_nutritional_info():
+    while True:
+        try:
+            print("\n\U0001f4ca Let's check the nutritional value!")
+            recipe_id = input("Enter the recipe ID (from option 1 or 2): ").strip()
+
+            if not recipe_id.isdigit():
+                print("\U0001f635 That doesn't look like a valid ID! Use numbers only.")
+                continue
+
+            url = f"{BASE_URL}/recipes/{recipe_id}/nutritionWidget.json"
+            params = {"apiKey": API_KEY}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+
+            nutrition = response.json()
+
+            print("\n\U0001f35c Nutrition per serving:")
+            print(f"\U0001f525 Calories: {nutrition.get('calories', '?')} kcal")
+            print(f"\U0001f4AA Protein: {nutrition.get('protein', '?')}g")
+            print(f"\U0001f9c8 Fat: {nutrition.get('fat', '?')}g")
+            print(f"\U0001f33E Carbs: {nutrition.get('carbs', '?')}g")
+
+            break
+
+        except Exception as error:
+            print(f"\n\u26a0\ufe0f Nutrition info error: {error}")
+            print("Please try again with a different ID")
+
+
+def get_recipe_link():
+    while True:
+        try:
+            print("\n\U0001f517 Need the full recipe?")
+            recipe_id = input("Enter recipe ID: ").strip()
+
+            if not recipe_id.isdigit():
+                print("\U0001f635 ID should be numbers only!")
+                continue
+
+            url = f"{BASE_URL}/recipes/{recipe_id}/information"
+            params = {"apiKey": API_KEY}
+
+            response = requests.get(url, params=params)
+            response.raise_for_status()
+
+            recipe_info = response.json()
+
+            if 'sourceUrl' in recipe_info and recipe_info['sourceUrl']:
+                print(f"\n\U0001f310 Here's the recipe: {recipe_info['sourceUrl']}")
+            else:
+                print("\n\U0001f622 Sorry, couldn't find a link for this recipe")
+                print("Please try a different recipe ID")
+                continue
+
+            break
+
+        except Exception as error:
+            print(f"\n\u26a0\ufe0f Error getting recipe link: {error}")
+            print("Let's try that again...")
+
 if __name__ == "__main__":
-    print("\U00002728 Welcome in the Recipe Finder! \U00002728")
-    print("Every recipe includes a ID that can be used to request nutritional value and the recipe-URL")
+    print("\n\U0001f951 Welcome to the Recipe Finder App! \U0001f951")
 
     while True:
         show_menu()
-        choice = input("\nChoose your option (1-5): ").strip()
+        choice = input("\nWhat would you like to do? (1-5): ").strip()
 
         if choice == "1":
-            recipes_from_ingredients()
+            find_recipes_by_ingredients()
         elif choice == "2":
             get_random_recipe()
         elif choice == "3":
-            show_nutritional_value()
+            show_nutritional_info()
         elif choice == "4":
-            get_recipe_url()
+            get_recipe_link()
         elif choice == "5":
-            print("\n\U0001F44B Thank you and enjoy your meal!")
+            print("\n\U0001faf6 Thanks for using this app! Happy cooking and enjoy your meal!")
             break
         else:
-            print("\U0000274C Invalid choice")
+            print("\u274c Please choose 1-5")
 
-        input("\nPress Enter to continue...")
+        input("Press Enter to continue...")
